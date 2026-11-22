@@ -1,4 +1,5 @@
 # What to search and how to classify results.
+# Patterns are case-insensitiv# What to search and how to classify results.
 # Patterns are case-insensitive regular expressions matched against the job title.
 
 linkedin:
@@ -51,6 +52,8 @@ filters:
     - '\b(expert|tier 3|level 3|l3)\b'
     - 'סטודנט|בכיר|ראש צוות'
     - 'data platform|integration engineer'
+    - 'sales|marketing|recruit|designer|accountant|legal|finance|payroll|\bhr\b'
+    - 'data scientist|front ?end|back ?end|full ?stack|software (engineer|developer)|developer|\bqa\b|product manager'
   max_years_experience: 4   # roles asking for more get score 1 and a note
 
 cv_rules:                   # checked top to bottom, first match wins
