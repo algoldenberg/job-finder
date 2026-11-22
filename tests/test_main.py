@@ -146,3 +146,34 @@ def test_sheet_is_written_before_jobs_are_remembered(monkeypatch, tmp_path) -> N
     assert app.main(args) == 1  # sheet failed, so the job is not remembered
     assert app.main(args) == 0  # retried on the next run
     assert calls == [(1, "Asia/Jerusalem"), (1, "Asia/Jerusalem")]
+
+
+def test_telegram_gets_summary_or_error(monkeypatch, tmp_path) -> None:
+    sent = []
+    monkeypatch.setattr(app.Telegram, "send", lambda self, text: sent.append(text) or True)
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123:abc")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "42")
+    job = Job(
+        "Greenhouse",
+        "1",
+        "NOC Engineer",
+        "Acme",
+        "Herzliya",
+        "https://g/1",
+        posted=NOW,
+        cv="NOC",
+        score=2,
+    )
+    monkeypatch.setattr(app, "collect", lambda *a, **k: [job])
+    args = ["--no-linkedin", "--out", str(tmp_path / "jobs.csv"), "--state", str(tmp_path / "s.db")]
+
+    assert app.main(args) == 0
+    assert "New jobs: <b>1</b>" in sent[-1]
+
+    def boom(*a, **k):
+        raise RuntimeError("network down")
+
+    monkeypatch.setattr(app, "collect", boom)
+    assert app.main(args) == 1
+    assert "run failed" in sent[-1]
+    assert "network down" in sent[-1]

@@ -16,6 +16,7 @@ from job_collector.dedupe import dedupe
 from job_collector.enrich import enrich
 from job_collector.httpclient import HttpClient
 from job_collector.models import Job
+from job_collector.notify import Telegram, build_error, build_summary
 from job_collector.output import write_csv
 from job_collector.sheets import SheetWriter
 from job_collector.store import Store
@@ -98,6 +99,8 @@ def run(args: argparse.Namespace, config: dict, store: Store, now: datetime) -> 
     log.info("collecting jobs posted since %s", since.isoformat(timespec="minutes"))
 
     client = HttpClient()
+    telegram = Telegram.from_env()
+    sheet_url = None
     run_id = store.start_run(now, since)
     try:
         jobs = collect(config, since, client, now)
@@ -110,13 +113,15 @@ def run(args: argparse.Namespace, config: dict, store: Store, now: datetime) -> 
             credentials = Path(
                 os.environ.get("GOOGLE_CREDENTIALS", "credentials/service-account.json")
             )
-            SheetWriter.connect(sheet_id, credentials).append(new_jobs, added)
+            sheet_url = SheetWriter.connect(sheet_id, credentials).append(new_jobs, added)
         else:
             log.info("SHEET_ID not set or --no-sheet given: CSV only")
         store.remember(new_jobs, now)
     except Exception as exc:
         log.exception("run failed")
         store.finish_run(run_id, "error", error=f"{type(exc).__name__}: {exc}")
+        if telegram:
+            telegram.send(build_error(exc, since))
         return 1
 
     s = client.stats
@@ -138,6 +143,8 @@ def run(args: argparse.Namespace, config: dict, store: Store, now: datetime) -> 
         s.rate_limited,
         s.failures,
     )
+    if telegram:
+        telegram.send(build_summary(new_jobs, s, since, added, sheet_url))
     return 0
 
 
