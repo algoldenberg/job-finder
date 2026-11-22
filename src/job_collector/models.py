@@ -17,3 +17,4 @@ class Job:
     cv: str = ""
     score: int = 0
     notes: list[str] = field(default_factory=list)
+    also_in: list[str] = field(default_factory=list)  # other sources with the same job
