@@ -1,0 +1,17 @@
+services:
+  collector:
+    build:
+      context: .
+      args:
+        UID: ${UID:-1000}
+    image: job-collector:latest
+    env_file: .env
+    environment:
+      TZ: Asia/Jerusalem
+    volumes:
+      - ./data:/app/data
+      - ./credentials:/app/credentials:ro
+      - ./config/config.yaml:/app/config/config.yaml:ro
+    mem_limit: 256m
+    cpus: 1.0
+    restart: "no"
