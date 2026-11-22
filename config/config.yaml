@@ -1,0 +1,81 @@
+# What to search and how to classify results.
+# Patterns are case-insensitive regular expressions matched against the job title.
+
+linkedin:
+  enabled: true
+  location: Israel
+  keywords:
+    - DevOps
+    - Junior DevOps
+    - NOC
+    - IT support
+    - Help desk
+    - System administrator
+    - Sysadmin
+    - Technical support
+    - Application support
+    - Data center technician
+    - IT specialist
+    - Support engineer
+  page_size: 10          # cards per page returned by the guest endpoint
+  max_pages: 20          # per keyword
+  delay_seconds: [3, 7]  # random pause between pages
+  keyword_delay_seconds: [6, 12]
+  fetch_descriptions: true
+  description_delay_seconds: [4, 8]
+
+ats:
+  greenhouse:
+    Nebius: nebius
+    Cato Networks: catonetworks
+    JFrog: jfrog
+    Similarweb: similarweb
+    Taboola: taboola
+    AppsFlyer: appsflyer
+    ScaleOps: scaleops
+    Connecteam: connecteam
+    Pontera: pontera
+  lever:
+    WalkMe: walkme
+  smartrecruiters:
+    Wix: Wix2
+
+israel_locations: >-
+  israel|tel[ -]?aviv|jerusalem|haifa|herzliya|petah|ramat|rehovot|yokneam|netanya|
+  beer|be'er|ra'anana|raanana|hod hasharon|airport city|caesarea|kfar saba|or yehuda|rosh
+
+filters:
+  exclude_title:
+    - '\b(senior|sr\.?|lead|leader|manager|principal|head|director|architect|staff|vp|chief)\b'
+    - '\b(student|intern|internship)\b'
+    - '\b(expert|tier 3|level 3|l3)\b'
+    - 'סטודנט|בכיר|ראש צוות'
+    - 'data platform|integration engineer'
+  max_years_experience: 4   # roles asking for more get score 1 and a note
+
+cv_rules:                   # checked top to bottom, first match wins
+  - cv: DevOps
+    patterns:
+      - 'devops|\bsre\b|site reliability'
+      - 'cloud (ops|operations|engineer)|infrastructure engineer|platform engineer'
+      - 'ci/?cd|build (and|&) release|release engineer'
+  - cv: NOC
+    patterns:
+      - '\bnoc\b|network operations|command center'
+      - 'monitoring|network (engineer|technician|administrator)'
+  - cv: IT_Support
+    patterns:
+      - 'help ?desk|service desk|it support|information technology|desktop support'
+      - 'end user|endpoint|microsoft 365|\bm365\b'
+      - 'it specialist|it technician|computer (systems|technician)|it engineer|it administrator|it operations'
+      - 'system administrator|sysadmin|systems? admin|data ?cent(er|re)'
+      - '\bit\b|מחשוב'
+  - cv: Technical_Support
+    patterns:
+      - 'technical support|tech support|application support|production support'
+      - 'support (engineer|specialist|analyst)|customer support|customer service engineer'
+      - 'technical account|implementation engineer|תמיכה טכנית|support'
+
+scoring:
+  junior_pattern: 'junior|jr\.?|entry|graduate|tier ?[12]|level ?[12]|\bl[12]\b|associate'
+  # 3 = junior or tier 1/2, 2 = matches profile, 1 = stretch (DevOps without junior, or too many years)
