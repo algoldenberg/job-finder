@@ -60,3 +60,26 @@ def test_accepted_titles(classifier: Classifier, title: str, cv: str, score: int
 )
 def test_rejected_titles(classifier: Classifier, title: str) -> None:
     assert not classifier.classify(make_job(title))
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "IT Junior",
+        "Junior IT",
+        "Junior IT Support Specialist | No Experience Required",
+        "Junior System Administrator (On-Prem)",
+        "Junior Helpdesk Technician",
+        "IT Associate",
+    ],
+)
+def test_junior_it_titles_get_top_score(classifier: Classifier, title: str) -> None:
+    job = make_job(title)
+    assert classifier.classify(job)
+    assert (job.cv, job.score) == ("IT_Support", 3)
+
+
+def test_junior_it_keywords_are_searched() -> None:
+    keywords = load_config()["linkedin"]["keywords"]
+    for keyword in ["Junior IT", "IT Junior", "IT technician", "Desktop support"]:
+        assert keyword in keywords

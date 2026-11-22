@@ -19,6 +19,10 @@ linkedin:
     - Application support
     - Data center technician
     - IT specialist
+    - Junior IT
+    - IT Junior
+    - IT technician
+    - Desktop support
     - Support engineer
   page_size: 10          # cards per page returned by the guest endpoint
   max_pages: 20          # per keyword
