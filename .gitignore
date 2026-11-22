@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets
+.env
+*.json.key
+credentials/
+service-account*.json
+
+# Local data and output
+data/
+*.db
+*.sqlite
+*.csv
+logs/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
