@@ -2,8 +2,12 @@
 
 import argparse
 import logging
+import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from dotenv import load_dotenv
 
 from job_collector import ats, linkedin
 from job_collector.classify import Classifier
@@ -13,6 +17,7 @@ from job_collector.enrich import enrich
 from job_collector.httpclient import HttpClient
 from job_collector.models import Job
 from job_collector.output import write_csv
+from job_collector.sheets import SheetWriter
 from job_collector.store import Store
 
 log = logging.getLogger("job_collector")
@@ -58,12 +63,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--state", type=Path, default=Path("data/state.db"), help="SQLite state")
     parser.add_argument("--seed-from", type=Path, help="mark jobs in this CSV as seen and exit")
     parser.add_argument("--no-linkedin", action="store_true", help="skip LinkedIn")
+    parser.add_argument("--no-sheet", action="store_true", help="write CSV only")
     parser.add_argument("-v", "--verbose", action="store_true", help="debug logging")
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    load_dotenv()
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
@@ -96,7 +103,16 @@ def run(args: argparse.Namespace, config: dict, store: Store, now: datetime) -> 
         jobs = collect(config, since, client, now)
         new_jobs = store.filter_new(jobs)
         log.info("%d of %d jobs are new", len(new_jobs), len(jobs))
-        write_csv(new_jobs, args.out, added=now)
+        added = now.astimezone(ZoneInfo(config.get("timezone", "Asia/Jerusalem")))
+        write_csv(new_jobs, args.out, added=added)
+        sheet_id = os.environ.get("SHEET_ID", "").strip()
+        if sheet_id and not args.no_sheet:
+            credentials = Path(
+                os.environ.get("GOOGLE_CREDENTIALS", "credentials/service-account.json")
+            )
+            SheetWriter.connect(sheet_id, credentials).append(new_jobs, added)
+        else:
+            log.info("SHEET_ID not set or --no-sheet given: CSV only")
         store.remember(new_jobs, now)
     except Exception as exc:
         log.exception("run failed")

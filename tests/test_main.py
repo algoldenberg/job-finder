@@ -125,3 +125,24 @@ def test_second_run_skips_known_jobs_and_failed_run_is_recorded(monkeypatch, tmp
 
     monkeypatch.setattr(app, "collect", boom)
     assert app.main(args) == 1
+
+
+def test_sheet_is_written_before_jobs_are_remembered(monkeypatch, tmp_path) -> None:
+    job = Job("Greenhouse", "1", "NOC Engineer", "Acme", "Herzliya", "https://g/1", posted=NOW)
+    monkeypatch.setattr(app, "collect", lambda *a, **k: [job])
+    calls = []
+
+    class FakeWriter:
+        def append(self, jobs, added):
+            calls.append((len(jobs), added.tzinfo.key))
+            if len(calls) == 1:
+                raise RuntimeError("Sheets API unavailable")
+            return "https://sheet"
+
+    monkeypatch.setattr(app.SheetWriter, "connect", lambda sheet_id, credentials: FakeWriter())
+    monkeypatch.setenv("SHEET_ID", "abc")
+    args = ["--no-linkedin", "--out", str(tmp_path / "jobs.csv"), "--state", str(tmp_path / "s.db")]
+
+    assert app.main(args) == 1  # sheet failed, so the job is not remembered
+    assert app.main(args) == 0  # retried on the next run
+    assert calls == [(1, "Asia/Jerusalem"), (1, "Asia/Jerusalem")]

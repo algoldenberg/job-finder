@@ -2,6 +2,8 @@
 # Patterns are case-insensitiv# What to search and how to classify results.
 # Patterns are case-insensitive regular expressions matched against the job title.
 
+timezone: Asia/Jerusalem   # used for the "Added" date and the weekly sheet tab
+
 linkedin:
   enabled: true
   location: Israel
