@@ -56,6 +56,7 @@ def test_accepted_titles(classifier: Classifier, title: str, cv: str, score: int
         "X-ray Integration Engineer",
         "QA Engineer & Production Support",
         "Product Designer - UX/UI",
+        "Information Technology Procurement",
     ],
 )
 def test_rejected_titles(classifier: Classifier, title: str) -> None:

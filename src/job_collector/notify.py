@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 API_URL = "https://api.telegram.org/bot{token}/sendMessage"
 TOP_PICKS = 5
-RATE_LIMIT_WARNING = 10  # more 429 answers than this in one run is worth a warning
+RATE_LIMIT_SHARE = 0.25  # warn when more than a quarter of requests were answered with 429
 
 
 def _counts(values: list[str]) -> str:
@@ -67,7 +67,9 @@ def build_summary(
             ]
     lines.append("")
     lines.append(f"Requests {stats.requests} · 429 {stats.rate_limited} · failed {stats.failures}")
-    if stats.rate_limited > RATE_LIMIT_WARNING:
+    if stats.failures:
+        lines.append("⚠️ Some requests failed even after retries, results may be incomplete.")
+    elif stats.requests and stats.rate_limited / stats.requests > RATE_LIMIT_SHARE:
         lines.append("⚠️ LinkedIn is rate limiting this IP, check the logs.")
     if sheet_url:
         lines.append(f'<a href="{html.escape(sheet_url)}">Open the sheet</a>')

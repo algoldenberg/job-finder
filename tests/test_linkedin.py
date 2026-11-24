@@ -84,12 +84,19 @@ def test_search_stops_on_empty_page_and_sends_params() -> None:
     assert client.calls[1]["start"] == 10
 
 
-def test_search_stops_when_page_repeats() -> None:
+def test_search_stops_after_two_pages_without_new_jobs() -> None:
     first = page(card("1", "A", "X"))
-    client = FakeClient([first, first, page(card("9", "Z", "X"))])
+    client = FakeClient([first, first, first, page(card("9", "Z", "X"))])
     jobs = linkedin.search(client, SETTINGS, window_seconds=3600)
     assert [j.job_id for j in jobs] == ["1"]
-    assert len(client.calls) == 2
+    assert len(client.calls) == 3
+
+
+def test_search_keeps_going_after_one_repeated_page() -> None:
+    first = page(card("1", "A", "X"))
+    client = FakeClient([first, first, page(card("9", "Z", "X")), ""])
+    jobs = linkedin.search(client, SETTINGS, window_seconds=3600)
+    assert [j.job_id for j in jobs] == ["1", "9"]
 
 
 def test_search_dedupes_across_keywords_and_pauses() -> None:

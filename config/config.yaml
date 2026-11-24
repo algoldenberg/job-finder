@@ -25,9 +25,9 @@ linkedin:
     - Desktop support
     - Support engineer
   page_size: 10          # cards per page returned by the guest endpoint
-  max_pages: 20          # per keyword
-  delay_seconds: [3, 7]  # random pause between pages
-  keyword_delay_seconds: [6, 12]
+  max_pages: 10          # per keyword; deep pages are mostly unrelated roles
+  delay_seconds: [5, 10]  # random pause between pages
+  keyword_delay_seconds: [15, 25]
   fetch_descriptions: true
   description_delay_seconds: [4, 8]
 
@@ -59,6 +59,7 @@ filters:
     - 'סטודנט|בכיר|ראש צוות'
     - 'data platform|integration engineer'
     - 'sales|marketing|recruit|designer|accountant|legal|finance|payroll|\bhr\b'
+    - 'procurement|purchasing|buyer'
     - 'data scientist|front ?end|back ?end|full ?stack|software (engineer|developer)|developer|\bqa\b|product manager'
   max_years_experience: 4   # roles asking for more get score 1 and a note
 

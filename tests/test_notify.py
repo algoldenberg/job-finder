@@ -57,6 +57,16 @@ def test_summary_without_jobs_warns_about_rate_limit() -> None:
     assert "Open the sheet" not in text
 
 
+def test_recovered_rate_limits_do_not_warn() -> None:
+    text = build_summary(JOBS, Stats(requests=119, rate_limited=19), SINCE, ADDED, None)
+    assert "⚠️" not in text
+
+
+def test_failed_requests_warn() -> None:
+    text = build_summary(JOBS, Stats(requests=119, rate_limited=3, failures=2), SINCE, ADDED, None)
+    assert "failed even after retries" in text
+
+
 def test_error_message_is_escaped() -> None:
     text = build_error(RuntimeError("bad <html> & stuff"), SINCE)
     assert "RuntimeError: bad &lt;html&gt; &amp; stuff" in text

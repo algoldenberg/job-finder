@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 SEARCH_URL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 POSTING_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{job_id}"
 VIEW_URL = "https://www.linkedin.com/jobs/view/{job_id}"
+STOP_AFTER_STALE_PAGES = 2  # LinkedIn repeats results, but a later page can still bring new ones
 
 
 def _clean(fragment: str) -> str:
@@ -64,6 +65,7 @@ def search(client: HttpClient, settings: dict, window_seconds: int) -> list[Job]
     for index, keyword in enumerate(settings["keywords"]):
         if index:
             client.pause(settings["keyword_delay_seconds"])
+        stale_pages = 0
         for page in range(settings["max_pages"]):
             if page:
                 client.pause(settings["delay_seconds"])
@@ -79,8 +81,10 @@ def search(client: HttpClient, settings: dict, window_seconds: int) -> list[Job]
             for job in new:
                 found[job.job_id] = job
             log.info("linkedin %r page %d: %d cards, %d new", keyword, page, len(cards), len(new))
-            # LinkedIn repeats earlier results on deep pages, so stop when nothing new comes back
-            if not new:
+            if not cards:
+                break
+            stale_pages = 0 if new else stale_pages + 1
+            if stale_pages >= STOP_AFTER_STALE_PAGES:
                 break
     return list(found.values())
 
