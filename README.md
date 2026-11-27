@@ -2,7 +2,7 @@
 
 A small self-hosted service that collects new DevOps, NOC and IT support job postings in Israel every working morning, filters them against my profile, picks which of my four CVs fits each role, and appends the results to a Google Sheet. A short summary arrives in Telegram when the run finishes.
 
-It runs as a one-shot Docker container on a Raspberry Pi 3, started by cron from Sunday to Thursday at 07:00.
+It runs as a one-shot Docker container on a Raspberry Pi 3, started by cron from Sunday to Friday at 07:00. The Friday run brings Thursday's postings in time for sending CVs, the Sunday run covers the weekend.
 
 ## Why
 
@@ -12,7 +12,7 @@ Applying for entry-level infrastructure roles means checking LinkedIn and a doze
 
 ```mermaid
 flowchart LR
-    A[cron 07:00 Sun-Thu] --> B[run.sh]
+    A[cron 07:00 Sun-Fri] --> B[run.sh]
     B --> C[collector container]
     C --> D[Company job boards<br>Greenhouse, Lever, SmartRecruiters]
     C --> E[LinkedIn public job search]
@@ -125,7 +125,7 @@ cp /path/to/service-account.json credentials/ && chmod 600 credentials/*
 cp .env.example .env && chmod 600 .env     # fill in the values
 docker compose build
 scripts/run.sh --no-linkedin               # smoke test
-crontab -e                                 # 0 7 * * 0-4 /opt/job-collector/scripts/run.sh
+crontab -e                                 # 0 7 * * 0-5 /opt/job-collector/scripts/run.sh
 ```
 
 Logs are written to `logs/YYYY-MM-DD.log` and kept for 30 days. The run history is in the `runs` table of `data/state.db`:
